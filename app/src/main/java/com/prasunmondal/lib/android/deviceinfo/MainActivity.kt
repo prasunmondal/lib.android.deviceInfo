@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
 
         println(" = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ")
         DeviceInfo.setContext(applicationContext, contentResolver)
-        println(DeviceInfo.get(Device.DEVICE_MAC_ADDRESS))
-        println(DeviceInfo.get(Device.DEVICE_UNIQUE_ID))
+        println(DeviceInfo.get(Device.MAC_ADDRESS))
+        println(DeviceInfo.get(Device.UNIQUE_ID))
     }
 }
