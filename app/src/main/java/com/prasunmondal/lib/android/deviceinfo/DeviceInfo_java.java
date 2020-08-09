@@ -2,6 +2,7 @@ package com.prasunmondal.lib.android.deviceinfo;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
@@ -26,23 +27,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public class DeviceInfo {
+public class DeviceInfo_java {
 
-    private static DeviceInfo singleton = null;
+    private static DeviceInfo_java singleton = null;
     private static Context activity;
-    public static DeviceInfo setContext(Context activity) {
+    private static ContentResolver contentResolver;
+    public static DeviceInfo_java setContext(Context activity, ContentResolver contentResolver) {
         if(singleton == null) {
-            singleton = new DeviceInfo();
+            singleton = new DeviceInfo_java();
             singleton.activity = activity;
+            singleton.contentResolver = contentResolver;
         }
         return singleton;
     }
 
     public static String get(Device device) throws Exception {
         if(activity == null) {
-            Log.e("DeviceInfo:: No Context",
-                    "Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext) - it's an one time operation");
-            throw new Exception("Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext)");
+            Log.e("DeviceInfo_java::",
+                    "Context not set for DeviceInfo_java class - use DeviceInfo_java.setContext(applicationContext, contentResolver) - it's an one time operation");
+            throw new Exception("Context not set for DeviceInfo_java class - use DeviceInfo_java.setContext(applicationContext, contentResolver)");
         }
         try {
             switch (device) {
@@ -149,23 +152,8 @@ public class DeviceInfo {
                     return "Android OS";
 
                 case DEVICE_UNIQUE_ID:
-//                    String uniqueID = null;
-//                    final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
-//                    if (uniqueID == null) {
-//                        SharedPreferences sharedPrefs = activity.getSharedPreferences(
-//                                PREF_UNIQUE_ID, Context.MODE_PRIVATE);
-//                        uniqueID = sharedPrefs.getString(PREF_UNIQUE_ID, null);
-//                        if (uniqueID == null) {
-//                            uniqueID = UUID.randomUUID().toString();
-//                            SharedPreferences.Editor editor = sharedPrefs.edit();
-//                            editor.putString(PREF_UNIQUE_ID, uniqueID);
-//                            editor.commit();
-//                        }
-//                    }
-//                    return uniqueID;
+                    return new DeviceInfo_kotlin().generateDeviceId(activity, contentResolver);
 
-                    String androidID = Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID);
-                    return androidID;
                 default:
                     break;
             }
