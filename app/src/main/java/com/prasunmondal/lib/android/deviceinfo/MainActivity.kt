@@ -10,7 +10,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         println(" = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ")
-//        DeviceInfo.setContext(applicationContext)
+        DeviceInfo.setContext(applicationContext)
         println(DeviceInfo.get(Device.DEVICE_MAC_ADDRESS))
     }
 }
