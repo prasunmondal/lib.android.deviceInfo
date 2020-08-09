@@ -1,2 +1,2 @@
-include ':app'
+include ':app', ':Device_Info'
 rootProject.name='deviceInfo'
