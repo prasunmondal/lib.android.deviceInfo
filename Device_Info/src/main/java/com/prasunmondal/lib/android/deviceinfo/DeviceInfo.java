@@ -2,11 +2,11 @@ package com.prasunmondal.lib.android.deviceinfo;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Build;
-import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -15,11 +15,9 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
@@ -30,19 +28,21 @@ public class DeviceInfo {
 
     private static DeviceInfo singleton = null;
     private static Context activity;
-    public static DeviceInfo setContext(Context activity) {
+    private static ContentResolver contentResolver;
+    public static DeviceInfo setContext(Context activity, ContentResolver contentResolver) {
         if(singleton == null) {
             singleton = new DeviceInfo();
             singleton.activity = activity;
+            singleton.contentResolver = contentResolver;
         }
         return singleton;
     }
 
     public static String get(Device device) throws Exception {
         if(activity == null) {
-            Log.e("DeviceInfo:: No Context",
-                    "Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext) - it's an one time operation");
-            throw new Exception("Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext)");
+            Log.e("DeviceInfo::",
+                    "Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext, contentResolver) - it's an one time operation");
+            throw new Exception("Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext, contentResolver)");
         }
         try {
             switch (device) {
@@ -87,12 +87,12 @@ public class DeviceInfo {
 
                 case DEVICE_TOTAL_MEMORY:
                     if (Build.VERSION.SDK_INT >= 16)
-                        return String.valueOf(getTotalMemory(activity));
+                        return String.valueOf(getTotalMemory());
                 case DEVICE_FREE_MEMORY:
-                    return String.valueOf(getFreeMemory(activity));
+                    return String.valueOf(getFreeMemory());
                 case DEVICE_USED_MEMORY:
                     if (Build.VERSION.SDK_INT >= 16) {
-                        long freeMem = getTotalMemory(activity) - getFreeMemory(activity);
+                        long freeMem = getTotalMemory() - getFreeMemory();
                         return String.valueOf(freeMem);
                     }
                     return "";
@@ -133,7 +133,7 @@ public class DeviceInfo {
                     }
                     return "";
                 case DEVICE_NETWORK_TYPE:
-                    return getNetworkType(activity);
+                    return getNetworkType();
                 case DEVICE_NETWORK:
                     return checkNetworkStatus();
                 case DEVICE_TYPE:
@@ -149,23 +149,8 @@ public class DeviceInfo {
                     return "Android OS";
 
                 case DEVICE_UNIQUE_ID:
-//                    String uniqueID = null;
-//                    final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
-//                    if (uniqueID == null) {
-//                        SharedPreferences sharedPrefs = activity.getSharedPreferences(
-//                                PREF_UNIQUE_ID, Context.MODE_PRIVATE);
-//                        uniqueID = sharedPrefs.getString(PREF_UNIQUE_ID, null);
-//                        if (uniqueID == null) {
-//                            uniqueID = UUID.randomUUID().toString();
-//                            SharedPreferences.Editor editor = sharedPrefs.edit();
-//                            editor.putString(PREF_UNIQUE_ID, uniqueID);
-//                            editor.commit();
-//                        }
-//                    }
-//                    return uniqueID;
+                    return new DeviceInfo_kotlin().generateDeviceId(activity, contentResolver);
 
-                    String androidID = Settings.Secure.getString(activity.getContentResolver(), Settings.Secure.ANDROID_ID);
-                    return androidID;
                 default:
                     break;
             }
@@ -176,35 +161,12 @@ public class DeviceInfo {
         return "";
     }
 
-    public static String getDeviceId(Context context) {
-        String device_uuid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        if (device_uuid == null) {
-            device_uuid = "12356789"; // for emulator testing
-        } else {
-            try {
-                byte[] _data = device_uuid.getBytes();
-                MessageDigest _digest = MessageDigest.getInstance("MD5");
-                _digest.update(_data);
-                _data = _digest.digest();
-                BigInteger _bi = new BigInteger(_data).abs();
-                device_uuid = _bi.toString(36);
-            } catch (Exception e) {
-                if (e != null) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return device_uuid;
-    }
-
-    @SuppressLint("NewApi")
-    private static long getTotalMemory(Context activity) {
+    private static long getTotalMemory() {
         try {
             ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
             ActivityManager activityManager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
             activityManager.getMemoryInfo(mi);
             long availableMegs = mi.totalMem / 1048576L; // in megabyte (mb)
-
             return availableMegs;
         } catch (Exception e) {
             e.printStackTrace();
@@ -212,7 +174,7 @@ public class DeviceInfo {
         }
     }
 
-    private static long getFreeMemory(Context activity) {
+    private static long getFreeMemory() {
         try {
             ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
             ActivityManager activityManager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
@@ -249,23 +211,6 @@ public class DeviceInfo {
     }
 
     /**
-     * Convert byte array to hex string
-     *
-     * @param bytes
-     * @return
-     */
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder sbuf = new StringBuilder();
-        for (int idx = 0; idx < bytes.length; idx++) {
-            int intVal = bytes[idx] & 0xff;
-            if (intVal < 0x10)
-                sbuf.append("0");
-            sbuf.append(Integer.toHexString(intVal).toUpperCase());
-        }
-        return sbuf.toString();
-    }
-
-    /**
      * Returns MAC address of the given interface name.
      *
      * @param interfaceName eth0, wlan0 or NULL=use first interface
@@ -285,8 +230,7 @@ public class DeviceInfo {
                 if (mac == null)
                     return "";
                 StringBuilder buf = new StringBuilder();
-                for (int idx = 0; idx < mac.length; idx++)
-                    buf.append(String.format("%02X:", mac[idx]));
+                for (byte b : mac) buf.append(String.format("%02X:", b));
                 if (buf.length() > 0)
                     buf.deleteCharAt(buf.length() - 1);
                 return buf.toString();
@@ -295,12 +239,6 @@ public class DeviceInfo {
             return "";
         } // for now eat exceptions
         return "";
-        /*
-         * try { // this is so Linux hack return
-         * loadFileAsString("/sys/class/net/" +interfaceName +
-         * "/address").toUpperCase().trim(); } catch (IOException ex) { return
-         * null; }
-         */
     }
 
     /**
@@ -384,7 +322,9 @@ public class DeviceInfo {
             e.printStackTrace();
         } finally {
             try {
+                assert in != null;
                 in.close();
+                assert p != null;
                 p.destroy();
             } catch (IOException e) {
                 Log.e("executeTop", "error in closing and destroying top process");
@@ -394,7 +334,7 @@ public class DeviceInfo {
         return returnString;
     }
 
-    public static String getNetworkType(final Context activity) {
+    private static String getNetworkType() {
         String networkStatus = "";
 
         final ConnectivityManager connMgr = (ConnectivityManager)
