@@ -2,6 +2,8 @@ package com.prasunmondal.lib.android.deviceinfo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+//import com.prasunmondal.lib.android.deviceinfo.libdev.Device
+//import com.prasunmondal.lib.android.deviceinfo.libdev.DeviceInfo
 
 class MainActivity : AppCompatActivity() {
 

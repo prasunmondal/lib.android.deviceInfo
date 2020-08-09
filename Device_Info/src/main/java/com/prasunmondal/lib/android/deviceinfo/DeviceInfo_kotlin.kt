@@ -6,7 +6,7 @@ import android.net.wifi.WifiManager
 import android.provider.Settings
 import java.util.*
 
-class DeviceInfo_kotlin {
+private class DeviceInfo_kotlin {
 
     protected fun generateDeviceId(context: Context, contentResolver: ContentResolver): String {
         val macAddr: String

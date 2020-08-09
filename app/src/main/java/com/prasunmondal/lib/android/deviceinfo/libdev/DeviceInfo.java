@@ -1,4 +1,4 @@
-package com.prasunmondal.lib.android.deviceinfo;
+package com.prasunmondal.lib.android.deviceinfo.libdev;
 
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
