@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.os.Build;
-import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -16,25 +15,23 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public class DeviceInfo_java {
+public class DeviceInfo {
 
-    private static DeviceInfo_java singleton = null;
+    private static DeviceInfo singleton = null;
     private static Context activity;
     private static ContentResolver contentResolver;
-    public static DeviceInfo_java setContext(Context activity, ContentResolver contentResolver) {
+    public static DeviceInfo setContext(Context activity, ContentResolver contentResolver) {
         if(singleton == null) {
-            singleton = new DeviceInfo_java();
+            singleton = new DeviceInfo();
             singleton.activity = activity;
             singleton.contentResolver = contentResolver;
         }
@@ -43,9 +40,9 @@ public class DeviceInfo_java {
 
     public static String get(Device device) throws Exception {
         if(activity == null) {
-            Log.e("DeviceInfo_java::",
-                    "Context not set for DeviceInfo_java class - use DeviceInfo_java.setContext(applicationContext, contentResolver) - it's an one time operation");
-            throw new Exception("Context not set for DeviceInfo_java class - use DeviceInfo_java.setContext(applicationContext, contentResolver)");
+            Log.e("DeviceInfo::",
+                    "Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext, contentResolver) - it's an one time operation");
+            throw new Exception("Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext, contentResolver)");
         }
         try {
             switch (device) {
@@ -90,12 +87,12 @@ public class DeviceInfo_java {
 
                 case DEVICE_TOTAL_MEMORY:
                     if (Build.VERSION.SDK_INT >= 16)
-                        return String.valueOf(getTotalMemory(activity));
+                        return String.valueOf(getTotalMemory());
                 case DEVICE_FREE_MEMORY:
-                    return String.valueOf(getFreeMemory(activity));
+                    return String.valueOf(getFreeMemory());
                 case DEVICE_USED_MEMORY:
                     if (Build.VERSION.SDK_INT >= 16) {
-                        long freeMem = getTotalMemory(activity) - getFreeMemory(activity);
+                        long freeMem = getTotalMemory() - getFreeMemory();
                         return String.valueOf(freeMem);
                     }
                     return "";
@@ -127,7 +124,7 @@ public class DeviceInfo_java {
                 case DEVICE_VERSION:
                     return String.valueOf(Build.VERSION.SDK_INT);
                 case DEVICE_IN_INCH:
-                    return getDeviceInch(activity);
+                    return getDeviceInch();
                 case DEVICE_TOTAL_CPU_IDLE:
                     int[] cpu_idle = getCpuUsageStatistic();
                     if (cpu_idle != null) {
@@ -136,12 +133,12 @@ public class DeviceInfo_java {
                     }
                     return "";
                 case DEVICE_NETWORK_TYPE:
-                    return getNetworkType(activity);
+                    return getNetworkType();
                 case DEVICE_NETWORK:
-                    return checkNetworkStatus(activity);
+                    return checkNetworkStatus();
                 case DEVICE_TYPE:
-                    if (isTablet(activity)) {
-                        if (getDeviceMoreThan5Inch(activity)) {
+                    if (isTablet()) {
+                        if (getDeviceMoreThan5Inch()) {
                             return "Tablet";
                         } else
                             return "Mobile";
@@ -164,35 +161,12 @@ public class DeviceInfo_java {
         return "";
     }
 
-    public static String getDeviceId(Context context) {
-        String device_uuid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        if (device_uuid == null) {
-            device_uuid = "12356789"; // for emulator testing
-        } else {
-            try {
-                byte[] _data = device_uuid.getBytes();
-                MessageDigest _digest = MessageDigest.getInstance("MD5");
-                _digest.update(_data);
-                _data = _digest.digest();
-                BigInteger _bi = new BigInteger(_data).abs();
-                device_uuid = _bi.toString(36);
-            } catch (Exception e) {
-                if (e != null) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return device_uuid;
-    }
-
-    @SuppressLint("NewApi")
-    private static long getTotalMemory(Context activity) {
+    private static long getTotalMemory() {
         try {
             ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
             ActivityManager activityManager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
             activityManager.getMemoryInfo(mi);
             long availableMegs = mi.totalMem / 1048576L; // in megabyte (mb)
-
             return availableMegs;
         } catch (Exception e) {
             e.printStackTrace();
@@ -200,7 +174,7 @@ public class DeviceInfo_java {
         }
     }
 
-    private static long getFreeMemory(Context activity) {
+    private static long getFreeMemory() {
         try {
             ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
             ActivityManager activityManager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
@@ -237,23 +211,6 @@ public class DeviceInfo_java {
     }
 
     /**
-     * Convert byte array to hex string
-     *
-     * @param bytes
-     * @return
-     */
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder sbuf = new StringBuilder();
-        for (int idx = 0; idx < bytes.length; idx++) {
-            int intVal = bytes[idx] & 0xff;
-            if (intVal < 0x10)
-                sbuf.append("0");
-            sbuf.append(Integer.toHexString(intVal).toUpperCase());
-        }
-        return sbuf.toString();
-    }
-
-    /**
      * Returns MAC address of the given interface name.
      *
      * @param interfaceName eth0, wlan0 or NULL=use first interface
@@ -273,8 +230,7 @@ public class DeviceInfo_java {
                 if (mac == null)
                     return "";
                 StringBuilder buf = new StringBuilder();
-                for (int idx = 0; idx < mac.length; idx++)
-                    buf.append(String.format("%02X:", mac[idx]));
+                for (byte b : mac) buf.append(String.format("%02X:", b));
                 if (buf.length() > 0)
                     buf.deleteCharAt(buf.length() - 1);
                 return buf.toString();
@@ -283,12 +239,6 @@ public class DeviceInfo_java {
             return "";
         } // for now eat exceptions
         return "";
-        /*
-         * try { // this is so Linux hack return
-         * loadFileAsString("/sys/class/net/" +interfaceName +
-         * "/address").toUpperCase().trim(); } catch (IOException ex) { return
-         * null; }
-         */
     }
 
     /**
@@ -372,7 +322,9 @@ public class DeviceInfo_java {
             e.printStackTrace();
         } finally {
             try {
+                assert in != null;
                 in.close();
+                assert p != null;
                 p.destroy();
             } catch (IOException e) {
                 Log.e("executeTop", "error in closing and destroying top process");
@@ -382,7 +334,7 @@ public class DeviceInfo_java {
         return returnString;
     }
 
-    public static String getNetworkType(final Context activity) {
+    private static String getNetworkType() {
         String networkStatus = "";
 
         final ConnectivityManager connMgr = (ConnectivityManager)
@@ -397,14 +349,14 @@ public class DeviceInfo_java {
         if (wifi.isAvailable()) {
             networkStatus = "Wifi";
         } else if (mobile.isAvailable()) {
-            networkStatus = getDataType(activity);
+            networkStatus = getDataType();
         } else {
             networkStatus = "noNetwork";
         }
         return networkStatus;
     }
 
-    public static String checkNetworkStatus(final Context activity) {
+    private static String checkNetworkStatus() {
         String networkStatus = "";
         try {
             // Get connect mangaer
@@ -420,7 +372,7 @@ public class DeviceInfo_java {
             if (wifi.isAvailable()) {
                 networkStatus = "Wifi";
             } else if (mobile.isAvailable()) {
-                networkStatus = getDataType(activity);
+                networkStatus = getDataType();
             } else {
                 networkStatus = "noNetwork";
                 networkStatus = "0";
@@ -435,11 +387,11 @@ public class DeviceInfo_java {
 
     }
 
-    public static boolean isTablet(Context context) {
-        return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
+    private static boolean isTablet() {
+        return (activity.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 
-    public static boolean getDeviceMoreThan5Inch(Context activity) {
+    private static boolean getDeviceMoreThan5Inch() {
         try {
             DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
             // int width = displayMetrics.widthPixels;
@@ -460,7 +412,7 @@ public class DeviceInfo_java {
         }
     }
 
-    public static String getDeviceInch(Context activity) {
+    private static String getDeviceInch() {
         try {
             DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
 
@@ -473,7 +425,7 @@ public class DeviceInfo_java {
         }
     }
 
-    public static String getDataType(Context activity) {
+    private static String getDataType() {
         String type = "Mobile Data";
         TelephonyManager tm = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
         switch (tm.getNetworkType()) {

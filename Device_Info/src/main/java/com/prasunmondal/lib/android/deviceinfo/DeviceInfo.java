@@ -124,7 +124,7 @@ public class DeviceInfo {
                 case DEVICE_VERSION:
                     return String.valueOf(Build.VERSION.SDK_INT);
                 case DEVICE_IN_INCH:
-                    return getDeviceInch(activity);
+                    return getDeviceInch();
                 case DEVICE_TOTAL_CPU_IDLE:
                     int[] cpu_idle = getCpuUsageStatistic();
                     if (cpu_idle != null) {
@@ -135,10 +135,10 @@ public class DeviceInfo {
                 case DEVICE_NETWORK_TYPE:
                     return getNetworkType(activity);
                 case DEVICE_NETWORK:
-                    return checkNetworkStatus(activity);
+                    return checkNetworkStatus();
                 case DEVICE_TYPE:
-                    if (isTablet(activity)) {
-                        if (getDeviceMoreThan5Inch(activity)) {
+                    if (isTablet()) {
+                        if (getDeviceMoreThan5Inch()) {
                             return "Tablet";
                         } else
                             return "Mobile";
@@ -409,14 +409,14 @@ public class DeviceInfo {
         if (wifi.isAvailable()) {
             networkStatus = "Wifi";
         } else if (mobile.isAvailable()) {
-            networkStatus = getDataType(activity);
+            networkStatus = getDataType();
         } else {
             networkStatus = "noNetwork";
         }
         return networkStatus;
     }
 
-    public static String checkNetworkStatus(final Context activity) {
+    private static String checkNetworkStatus() {
         String networkStatus = "";
         try {
             // Get connect mangaer
@@ -432,7 +432,7 @@ public class DeviceInfo {
             if (wifi.isAvailable()) {
                 networkStatus = "Wifi";
             } else if (mobile.isAvailable()) {
-                networkStatus = getDataType(activity);
+                networkStatus = getDataType();
             } else {
                 networkStatus = "noNetwork";
                 networkStatus = "0";
@@ -447,11 +447,11 @@ public class DeviceInfo {
 
     }
 
-    public static boolean isTablet(Context context) {
-        return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
+    private static boolean isTablet() {
+        return (activity.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 
-    public static boolean getDeviceMoreThan5Inch(Context activity) {
+    private static boolean getDeviceMoreThan5Inch() {
         try {
             DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
             // int width = displayMetrics.widthPixels;
@@ -472,7 +472,7 @@ public class DeviceInfo {
         }
     }
 
-    public static String getDeviceInch(Context activity) {
+    private static String getDeviceInch() {
         try {
             DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
 
@@ -485,7 +485,7 @@ public class DeviceInfo {
         }
     }
 
-    public static String getDataType(Context activity) {
+    private static String getDataType() {
         String type = "Mobile Data";
         TelephonyManager tm = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
         switch (tm.getNetworkType()) {
