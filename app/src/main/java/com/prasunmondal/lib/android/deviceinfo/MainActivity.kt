@@ -2,6 +2,7 @@ package com.prasunmondal.lib.android.deviceinfo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.TextView
 import com.prasunmondal.lib.android.deviceinfo.libdev.DeviceInfo
 
 class MainActivity : AppCompatActivity() {
@@ -13,5 +14,7 @@ class MainActivity : AppCompatActivity() {
         println(" = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ")
         DeviceInfo.setContext(applicationContext, contentResolver)
         println(DeviceInfo.getAllInfo())
+
+        findViewById<TextView>(R.id.textview1).text = DeviceInfo.getAllInfo()
     }
 }
