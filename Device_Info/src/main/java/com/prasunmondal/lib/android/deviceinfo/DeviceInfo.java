@@ -38,6 +38,20 @@ public class DeviceInfo {
         return singleton;
     }
 
+    public static String getAllInfo() {
+        Device[] device = Device.values();
+        String result = "- - - Device Details - - -";
+        for(int i=0; i<device.length; i++) {
+            result += "\n";
+            try {
+                result += device[i].name() + ": " + get(device[i]);
+            } catch (Exception e) {
+                result += device[i].name() + ": ExceptionOccured";
+            }
+        }
+        return result;
+    }
+
     public static String get(Device device) throws Exception {
         if(activity == null) {
             Log.e("DeviceInfo::",

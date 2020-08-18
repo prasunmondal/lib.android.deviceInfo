@@ -2,8 +2,7 @@ package com.prasunmondal.lib.android.deviceinfo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-//import com.prasunmondal.lib.android.deviceinfo.libdev.Device
-//import com.prasunmondal.lib.android.deviceinfo.libdev.DeviceInfo
+import com.prasunmondal.lib.android.deviceinfo.libdev.DeviceInfo
 
 class MainActivity : AppCompatActivity() {
 
@@ -13,7 +12,6 @@ class MainActivity : AppCompatActivity() {
 
         println(" = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ")
         DeviceInfo.setContext(applicationContext, contentResolver)
-        println(DeviceInfo.get(Device.MAC_ADDRESS))
-        println(DeviceInfo.get(Device.UNIQUE_ID))
+        println(DeviceInfo.getAllInfo())
     }
 }

@@ -29,6 +29,21 @@ public class DeviceInfo {
     private static DeviceInfo singleton = null;
     private static Context activity;
     private static ContentResolver contentResolver;
+
+    public static String getAllInfo() {
+         Device[] device = Device.values();
+         String result = "- - - Device Details - - -";
+         for(int i=0; i<device.length; i++) {
+             result += "\n";
+             try {
+                 result += device[i].name() + ": " + get(device[i]);
+             } catch (Exception e) {
+                 result += device[i].name() + ": ExceptionOccured";
+             }
+         }
+         return result;
+    }
+
     public static DeviceInfo setContext(Context activity, ContentResolver contentResolver) {
         if(singleton == null) {
             singleton = new DeviceInfo();
@@ -46,36 +61,36 @@ public class DeviceInfo {
         }
         try {
             switch (device) {
-                case DEVICE_LANGUAGE:
+                case LANGUAGE:
                     return Locale.getDefault().getDisplayLanguage();
-                case DEVICE_TIME_ZONE:
+                case TIME_ZONE:
                     return TimeZone.getDefault().getID();//(false, TimeZone.SHORT);
-                case DEVICE_LOCAL_COUNTRY_CODE:
+                case LOCAL_COUNTRY_CODE:
                     return activity.getResources().getConfiguration().locale.getCountry();
-                case DEVICE_CURRENT_YEAR:
+                case CURRENT_YEAR:
                     return "" + (Calendar.getInstance().get(Calendar.YEAR));
-                case DEVICE_CURRENT_DATE_TIME:
+                case CURRENT_DATE_TIME:
                     Calendar calendarTime = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault());
                     long time = (calendarTime.getTimeInMillis() / 1000);
                     return String.valueOf(time);
                 //                    return DateFormat.getDateTimeInstance().format(new Date());
-                case DEVICE_CURRENT_DATE_TIME_ZERO_GMT:
+                case CURRENT_DATE_TIME_ZERO_GMT:
                     Calendar calendarTime_zero = Calendar.getInstance(TimeZone.getTimeZone("GMT+0"), Locale.getDefault());
                     return String.valueOf((calendarTime_zero.getTimeInMillis() / 1000));
 //                                    DateFormat df = DateFormat.getDateTimeInstance();
 //                                    df.setTimeZone(TimeZone.getTimeZone("GMT+0"));
 //                                    return df.format(new Date());
-                case DEVICE_HARDWARE_MODEL:
+                case HARDWARE_MODEL:
                     return getDeviceName();
-                case DEVICE_NUMBER_OF_PROCESSORS:
+                case NUMBER_OF_PROCESSORS:
                     return Runtime.getRuntime().availableProcessors() + "";
-                case DEVICE_LOCALE:
+                case LOCALE:
                     return Locale.getDefault().getISO3Country();
-                case DEVICE_IP_ADDRESS_IPV4:
+                case IP_ADDRESS_IPV4:
                     return getIPAddress(true);
-                case DEVICE_IP_ADDRESS_IPV6:
+                case IP_ADDRESS_IPV6:
                     return getIPAddress(false);
-                case DEVICE_MAC_ADDRESS:
+                case MAC_ADDRESS:
                     String mac = getMACAddress("wlan0");
                     if (TextUtils.isEmpty(mac)) {
                         mac = getMACAddress("eth0");
@@ -85,58 +100,58 @@ public class DeviceInfo {
                     }
                     return mac;
 
-                case DEVICE_TOTAL_MEMORY:
+                case TOTAL_MEMORY:
                     if (Build.VERSION.SDK_INT >= 16)
                         return String.valueOf(getTotalMemory());
-                case DEVICE_FREE_MEMORY:
+                case FREE_MEMORY:
                     return String.valueOf(getFreeMemory());
-                case DEVICE_USED_MEMORY:
+                case USED_MEMORY:
                     if (Build.VERSION.SDK_INT >= 16) {
                         long freeMem = getTotalMemory() - getFreeMemory();
                         return String.valueOf(freeMem);
                     }
                     return "";
-                case DEVICE_TOTAL_CPU_USAGE:
+                case TOTAL_CPU_USAGE:
                     int[] cpu = getCpuUsageStatistic();
                     if (cpu != null) {
                         int total = cpu[0] + cpu[1] + cpu[2] + cpu[3];
                         return String.valueOf(total);
                     }
                     return "";
-                case DEVICE_TOTAL_CPU_USAGE_SYSTEM:
+                case TOTAL_CPU_USAGE_SYSTEM:
                     int[] cpu_sys = getCpuUsageStatistic();
                     if (cpu_sys != null) {
                         int total = cpu_sys[1];
                         return String.valueOf(total);
                     }
                     return "";
-                case DEVICE_TOTAL_CPU_USAGE_USER:
+                case TOTAL_CPU_USAGE_USER:
                     int[] cpu_usage = getCpuUsageStatistic();
                     if (cpu_usage != null) {
                         int total = cpu_usage[0];
                         return String.valueOf(total);
                     }
                     return "";
-                case DEVICE_MANUFACTURE:
+                case MANUFACTURE:
                     return Build.MANUFACTURER;
-                case DEVICE_SYSTEM_VERSION:
+                case SYSTEM_VERSION:
                     return String.valueOf(getDeviceName());
-                case DEVICE_VERSION:
+                case VERSION:
                     return String.valueOf(Build.VERSION.SDK_INT);
-                case DEVICE_IN_INCH:
+                case IN_INCH:
                     return getDeviceInch();
-                case DEVICE_TOTAL_CPU_IDLE:
+                case TOTAL_CPU_IDLE:
                     int[] cpu_idle = getCpuUsageStatistic();
                     if (cpu_idle != null) {
                         int total = cpu_idle[2];
                         return String.valueOf(total);
                     }
                     return "";
-                case DEVICE_NETWORK_TYPE:
+                case NETWORK_TYPE:
                     return getNetworkType();
-                case DEVICE_NETWORK:
+                case NETWORK:
                     return checkNetworkStatus();
-                case DEVICE_TYPE:
+                case TYPE:
                     if (isTablet()) {
                         if (getDeviceMoreThan5Inch()) {
                             return "Tablet";
@@ -145,10 +160,10 @@ public class DeviceInfo {
                     } else {
                         return "Mobile";
                     }
-                case DEVICE_SYSTEM_NAME:
+                case SYSTEM_NAME:
                     return "Android OS";
 
-                case DEVICE_UNIQUE_ID:
+                case UNIQUE_ID:
                     return new DeviceInfo_kotlin().generateDeviceId(activity, contentResolver);
 
                 default:
