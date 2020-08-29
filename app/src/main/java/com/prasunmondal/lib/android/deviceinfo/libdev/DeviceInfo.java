@@ -31,21 +31,21 @@ public class DeviceInfo {
     private static ContentResolver contentResolver;
 
     public static String getAllInfo() {
-         Device[] device = Device.values();
-         String result = "- - - Device Details - - -";
-         for(int i=0; i<device.length; i++) {
-             result += "\n";
-             try {
-                 result += device[i].name() + ": " + get(device[i]);
-             } catch (Exception e) {
-                 result += device[i].name() + ": ExceptionOccured";
-             }
-         }
-         return result;
+        Device[] device = Device.values();
+        String result = "- - - Device Details - - -";
+        for (int i = 0; i < device.length; i++) {
+            result += "\n";
+            try {
+                result += device[i].name() + ": " + get(device[i]);
+            } catch (Exception e) {
+                result += device[i].name() + ": ExceptionOccured";
+            }
+        }
+        return result;
     }
 
     public static DeviceInfo setContext(Context activity, ContentResolver contentResolver) {
-        if(singleton == null) {
+        if (singleton == null) {
             singleton = new DeviceInfo();
             singleton.context = activity;
             singleton.contentResolver = contentResolver;
@@ -58,7 +58,7 @@ public class DeviceInfo {
     }
 
     public static String get(Device device) throws Exception {
-        if(context == null) {
+        if (context == null) {
             Log.e("DeviceInfo::",
                     "Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext, contentResolver) - it's an one time operation");
             throw new Exception("Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext, contentResolver)");

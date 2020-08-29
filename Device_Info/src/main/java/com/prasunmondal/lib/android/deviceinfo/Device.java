@@ -1,5 +1,6 @@
 package com.prasunmondal.lib.android.deviceinfo;
 
+
 public enum Device {
     TYPE,
     SYSTEM_NAME,

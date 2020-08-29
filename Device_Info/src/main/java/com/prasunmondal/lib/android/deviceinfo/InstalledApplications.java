@@ -1,4 +1,4 @@
-package com.prasunmondal.lib.android.deviceinfo.libdev;
+package com.prasunmondal.lib.android.deviceinfo;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
