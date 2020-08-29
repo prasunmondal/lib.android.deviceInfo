@@ -4,8 +4,11 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
+import android.nfc.Tag;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -20,6 +23,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -51,6 +55,34 @@ public class DeviceInfo {
             singleton.contentResolver = contentResolver;
         }
         return singleton;
+    }
+
+    public static String get(InstalledApps type) throws Exception {
+        final PackageManager pm = activity.getPackageManager();
+        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+
+        switch (type) {
+            case APP_COUNT:
+                return String.valueOf(packages.size());
+            case ALL_APP_LIST:
+                Collections.sort(packages, new Comparator<ApplicationInfo>() {
+                    public int compare(ApplicationInfo o1, ApplicationInfo o2) {
+                        return o1.packageName.compareTo(o2.packageName);
+                    }
+                });
+                String result = "";
+                boolean isFirst = true;
+                for (ApplicationInfo packageInfo : packages) {
+                    if (!isFirst) {
+                        result += "\n";
+                    } else {
+                        isFirst = false;
+                    }
+                    result += packageInfo.packageName;
+                }
+                return result;
+        }
+        return "";
     }
 
     public static String get(Device device) throws Exception {

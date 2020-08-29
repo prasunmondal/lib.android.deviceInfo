@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
 import com.prasunmondal.lib.android.deviceinfo.libdev.DeviceInfo
+import com.prasunmondal.lib.android.deviceinfo.libdev.InstalledApps
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,6 +16,6 @@ class MainActivity : AppCompatActivity() {
         DeviceInfo.setContext(applicationContext, contentResolver)
         println(DeviceInfo.getAllInfo())
 
-        findViewById<TextView>(R.id.textview1).text = DeviceInfo.getAllInfo()
+        findViewById<TextView>(R.id.textview1).text = DeviceInfo.getAllInfo() + "\n\n\n" + DeviceInfo.get(InstalledApps.ALL_APP_LIST) + "\n\n\n" + DeviceInfo.get(InstalledApps.APP_COUNT);
     }
 }
