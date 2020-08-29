@@ -4,11 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
-import android.nfc.Tag;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -23,7 +20,6 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -31,7 +27,7 @@ import java.util.TimeZone;
 public class DeviceInfo {
 
     private static DeviceInfo singleton = null;
-    private static Context activity;
+    private static Context context;
     private static ContentResolver contentResolver;
 
     public static String getAllInfo() {
@@ -51,42 +47,18 @@ public class DeviceInfo {
     public static DeviceInfo setContext(Context activity, ContentResolver contentResolver) {
         if(singleton == null) {
             singleton = new DeviceInfo();
-            singleton.activity = activity;
+            singleton.context = activity;
             singleton.contentResolver = contentResolver;
         }
         return singleton;
     }
 
-    public static String get(InstalledApps type) throws Exception {
-        final PackageManager pm = activity.getPackageManager();
-        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-
-        switch (type) {
-            case APP_COUNT:
-                return String.valueOf(packages.size());
-            case ALL_APP_LIST:
-                Collections.sort(packages, new Comparator<ApplicationInfo>() {
-                    public int compare(ApplicationInfo o1, ApplicationInfo o2) {
-                        return o1.packageName.compareTo(o2.packageName);
-                    }
-                });
-                String result = "";
-                boolean isFirst = true;
-                for (ApplicationInfo packageInfo : packages) {
-                    if (!isFirst) {
-                        result += "\n";
-                    } else {
-                        isFirst = false;
-                    }
-                    result += packageInfo.packageName;
-                }
-                return result;
-        }
-        return "";
+    public static String get(InstalledApps info) throws Exception {
+        return InstalledApplications.get(info, context);
     }
 
     public static String get(Device device) throws Exception {
-        if(activity == null) {
+        if(context == null) {
             Log.e("DeviceInfo::",
                     "Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext, contentResolver) - it's an one time operation");
             throw new Exception("Context not set for DeviceInfo class - use DeviceInfo.setContext(applicationContext, contentResolver)");
@@ -98,7 +70,7 @@ public class DeviceInfo {
                 case TIME_ZONE:
                     return TimeZone.getDefault().getID();//(false, TimeZone.SHORT);
                 case LOCAL_COUNTRY_CODE:
-                    return activity.getResources().getConfiguration().locale.getCountry();
+                    return context.getResources().getConfiguration().locale.getCountry();
                 case CURRENT_YEAR:
                     return "" + (Calendar.getInstance().get(Calendar.YEAR));
                 case CURRENT_DATE_TIME:
@@ -196,7 +168,7 @@ public class DeviceInfo {
                     return "Android OS";
 
                 case UNIQUE_ID:
-                    return new DeviceInfo_kotlin().generateDeviceId(activity, contentResolver);
+                    return new DeviceInfo_kotlin().generateDeviceId(context, contentResolver);
 
                 default:
                     break;
@@ -211,7 +183,7 @@ public class DeviceInfo {
     private static long getTotalMemory() {
         try {
             ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
-            ActivityManager activityManager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+            ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
             activityManager.getMemoryInfo(mi);
             long availableMegs = mi.totalMem / 1048576L; // in megabyte (mb)
             return availableMegs;
@@ -224,7 +196,7 @@ public class DeviceInfo {
     private static long getFreeMemory() {
         try {
             ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
-            ActivityManager activityManager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+            ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
             activityManager.getMemoryInfo(mi);
             long availableMegs = mi.availMem / 1048576L; // in megabyte (mb)
 
@@ -385,7 +357,7 @@ public class DeviceInfo {
         String networkStatus = "";
 
         final ConnectivityManager connMgr = (ConnectivityManager)
-                activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+                context.getSystemService(Context.CONNECTIVITY_SERVICE);
         // check for wifi
         final android.net.NetworkInfo wifi =
                 connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -408,7 +380,7 @@ public class DeviceInfo {
         try {
             // Get connect mangaer
             final ConnectivityManager connMgr = (ConnectivityManager)
-                    activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+                    context.getSystemService(Context.CONNECTIVITY_SERVICE);
             // // check for wifi
             final android.net.NetworkInfo wifi =
                     connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -435,12 +407,12 @@ public class DeviceInfo {
     }
 
     private static boolean isTablet() {
-        return (activity.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
+        return (context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 
     private static boolean getDeviceMoreThan5Inch() {
         try {
-            DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
+            DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
             // int width = displayMetrics.widthPixels;
             // int height = displayMetrics.heightPixels;
 
@@ -461,7 +433,7 @@ public class DeviceInfo {
 
     private static String getDeviceInch() {
         try {
-            DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
+            DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
 
             float yInches = displayMetrics.heightPixels / displayMetrics.ydpi;
             float xInches = displayMetrics.widthPixels / displayMetrics.xdpi;
@@ -474,7 +446,7 @@ public class DeviceInfo {
 
     private static String getDataType() {
         String type = "Mobile Data";
-        TelephonyManager tm = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         switch (tm.getNetworkType()) {
             case TelephonyManager.NETWORK_TYPE_HSDPA:
                 type = "Mobile Data 3G";
